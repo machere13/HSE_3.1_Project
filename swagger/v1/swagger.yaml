@@ -1,0 +1,28 @@
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+paths:
+  /api/v1/health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns the health status of the API
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    example: '2023-01-01T00:00:00Z'
+servers:
+  - url: http://localhost:3000
+    description: Development server
