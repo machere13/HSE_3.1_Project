@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get 'health', to: 'health#index'
       post 'auth', to: 'auth#login_or_register'
+      get 'auth/me', to: 'auth#me'
     end
   end
 
