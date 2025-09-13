@@ -2,14 +2,14 @@ namespace :dev do
   desc "Start PostgreSQL server"
   task :start_postgres do
     puts "Starting PostgreSQL server..."
-    system('& "C:\\PostgreSQL\\bin\\pg_ctl.exe" start -D "C:\\PostgreSQL\\data"')
+    system('"C:\\PostgreSQL\\bin\\pg_ctl.exe" start -D "C:\\PostgreSQL\\data"')
     puts "PostgreSQL server started!"
   end
 
   desc "Stop PostgreSQL server"
   task :stop_postgres do
     puts "Stopping PostgreSQL server..."
-    system('& "C:\\PostgreSQL\\bin\\pg_ctl.exe" stop -D "C:\\PostgreSQL\\data"')
+    system('"C:\\PostgreSQL\\bin\\pg_ctl.exe" stop -D "C:\\PostgreSQL\\data"')
     puts "PostgreSQL server stopped!"
   end
 

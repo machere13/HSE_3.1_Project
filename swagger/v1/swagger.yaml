@@ -23,6 +23,105 @@ paths:
                   timestamp:
                     type: string
                     example: '2023-01-01T00:00:00Z'
+
+  /api/v1/auth:
+    post:
+      tags:
+        - Authentication
+      summary: Login or Register
+      description: Авторизация или регистрация пользователя. Если пользователь с таким email существует - проверяет пароль, если нет - создает нового пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 6
+                  example: password123
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Успешный вход
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        example: user@example.com
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Пользователь успешно зарегистрирован
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        example: user@example.com
+        '400':
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email и пароль обязательны
+        '401':
+          description: Неверный пароль
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Неверный пароль
+        '422':
+          description: Ошибка регистрации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Ошибка регистрации
+                  details:
+                    type: array
+                    items:
+                      type: string
+                    example: ['Email has already been taken']
 servers:
   - url: http://localhost:3000
     description: Development server
