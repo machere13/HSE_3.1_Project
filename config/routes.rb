@@ -6,7 +6,10 @@ Rails.application.routes.draw do
     namespace :v1 do
       get 'health', to: 'health#index'
       post 'auth', to: 'auth#login_or_register'
+      post 'auth/verify', to: 'auth#verify_email'
+      post 'auth/resend', to: 'auth#resend_verification_code'
       get 'auth/me', to: 'auth#me'
+      get 'auth/supported-domains', to: 'auth#supported_email_domains'
     end
   end
 
