@@ -72,7 +72,7 @@ paths:
                         type: string
                         example: user@example.com
         '201':
-          description: Пользователь успешно зарегистрирован
+          description: Пользователь зарегистрирован, требуется подтверждение email
           content:
             application/json:
               schema:
@@ -80,19 +80,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Пользователь успешно зарегистрирован
-                  token:
+                    example: Пользователь зарегистрирован. Проверьте email для подтверждения.
+                  requires_verification:
+                    type: boolean
+                    example: true
+                  email:
                     type: string
-                    example: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2MzQwNzI4MDB9.example
-                  user:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
-                      email:
-                        type: string
-                        example: user@example.com
+                    example: user@example.com
         '400':
           description: Неверные входные данные
           content:
@@ -128,6 +122,175 @@ paths:
                     items:
                       type: string
                     example: ['Email has already been taken']
+        '403':
+          description: Email не подтвержден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email не подтвержден
+                  requires_verification:
+                    type: boolean
+                    example: true
+                  email:
+                    type: string
+                    example: user@example.com
+
+  /api/v1/auth/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Подтверждение email
+      description: Подтверждение email с помощью 6-значного кода
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                code:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  example: '123456'
+      responses:
+        '200':
+          description: Email успешно подтвержден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Email успешно подтвержден
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2MzQwNzI4MDB9.example
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        example: user@example.com
+        '400':
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email и код обязательны
+        '401':
+          description: Неверный или истекший код
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Неверный или истекший код
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Пользователь не найден
+
+  /api/v1/auth/resend:
+    post:
+      tags:
+        - Authentication
+      summary: Повторная отправка кода
+      description: Отправка нового кода подтверждения на email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Код отправлен повторно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Код подтверждения отправлен повторно
+        '400':
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email обязателен
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Пользователь не найден
+
+  /api/v1/auth/supported-domains:
+    get:
+      tags:
+        - Authentication
+      summary: Поддерживаемые домены
+      description: Получить список поддерживаемых почтовых доменов
+      responses:
+        '200':
+          description: Список поддерживаемых доменов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  supported_domains:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      ['gmail.com', 'yandex.ru', 'mail.ru', 'outlook.com']
+                  message:
+                    type: string
+                    example: Поддерживаемые почтовые домены для регистрации
 
   /api/v1/auth/me:
     get:
