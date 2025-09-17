@@ -328,7 +328,270 @@ paths:
                     type: string
                     example: Требуется авторизация
 
+  /api/v1/achievements:
+    get:
+      tags:
+        - Achievements
+      summary: Получить все достижения
+      description: Возвращает список всех доступных достижений
+      responses:
+        '200':
+          description: Список достижений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Achievement'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/achievements/my:
+    get:
+      tags:
+        - Achievements
+      summary: Получить достижения пользователя
+      description: Возвращает достижения текущего пользователя, разделенные на завершенные и в процессе
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Достижения пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  completed:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAchievement'
+                  in_progress:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAchievement'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/achievements/by_category:
+    get:
+      tags:
+        - Achievements
+      summary: Получить достижения по категории
+      description: Возвращает достижения определенной категории
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                registration,
+                content_viewing,
+                dev_diving,
+                legacy,
+                it_errors,
+                it_security,
+                general
+              ]
+          description: Категория достижений
+      responses:
+        '200':
+          description: Достижения по категории
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Achievement'
+        '400':
+          description: Неверная категория
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/achievements/test/interactive:
+    post:
+      tags:
+        - Achievements
+      summary: Тест прохождения интерактива
+      description: Симулирует прохождение интерактива для проверки системы достижений
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content_category:
+                  type: string
+                  enum: [dev_diving, legacy, it_errors, it_security]
+                  default: dev_diving
+                  description: Тема контента
+      responses:
+        '200':
+          description: Достижения обновлены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updated_achievements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAchievement'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/achievements/test/consecutive_days:
+    post:
+      tags:
+        - Achievements
+      summary: Тест дней подряд
+      description: Симулирует просмотр контента подряд для проверки системы достижений
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                days:
+                  type: integer
+                  default: 7
+                  description: Количество дней подряд
+      responses:
+        '200':
+          description: Достижения обновлены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updated_achievements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAchievement'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/achievements/test/registration:
+    post:
+      tags:
+        - Achievements
+      summary: Тест достижений по регистрации
+      description: Симулирует проверку достижений по порядку регистрации пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Достижения обновлены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updated_achievements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAchievement'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
 components:
+  schemas:
+    Achievement:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор достижения
+        name:
+          type: string
+          description: Название достижения
+        description:
+          type: string
+          description: Описание достижения
+        category:
+          type: string
+          enum:
+            [
+              registration,
+              content_viewing,
+              dev_diving,
+              legacy,
+              it_errors,
+              it_security,
+              general
+            ]
+          description: |
+            Категория достижения:
+            - registration, content_viewing - специальные достижения
+            - dev_diving, legacy, it_errors, it_security - темы контента
+            - general - общие достижения (собирают интерактивы со всех тем)
+        progress_type:
+          type: string
+          enum:
+            [
+              consecutive_days,
+              total_interactives,
+              registration_order,
+              platform_lifetime
+            ]
+          description: Тип прогресса
+        progress_target:
+          type: integer
+          description: Целевое значение для завершения
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserAchievement:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор пользовательского достижения
+        achievement:
+          $ref: '#/components/schemas/Achievement'
+        progress:
+          type: integer
+          description: Текущий прогресс
+        progress_percentage:
+          type: integer
+          description: Процент выполнения (0-100)
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата завершения достижения
+        completed:
+          type: boolean
+          description: Завершено ли достижение
+
+  responses:
+    UnauthorizedError:
+      description: Неавторизованный доступ
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: 'Unauthorized'
+
   securitySchemes:
     bearerAuth:
       type: http

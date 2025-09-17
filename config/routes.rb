@@ -10,6 +10,16 @@ Rails.application.routes.draw do
       post 'auth/resend', to: 'auth#resend_verification_code'
       get 'auth/me', to: 'auth#me'
       get 'auth/supported-domains', to: 'auth#supported_email_domains'
+      
+      resources :achievements, only: [:index] do
+        collection do
+          get 'my', to: 'achievements#user_achievements'
+          get 'by_category', to: 'achievements#by_category'
+          post 'test/interactive', to: 'achievements#test_interactive_completion'
+          post 'test/consecutive_days', to: 'achievements#test_consecutive_days'
+          post 'test/registration', to: 'achievements#test_registration_order'
+        end
+      end
     end
   end
 

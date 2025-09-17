@@ -1,8 +1,13 @@
 class User < ApplicationRecord
   has_secure_password
   
+  has_many :user_achievements, dependent: :destroy
+  has_many :achievements, through: :user_achievements
+  
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :password, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
+  
+  after_create :check_registration_achievements
   
   def generate_verification_code!
     self.verification_code = SecureRandom.random_number(1000000).to_s.rjust(6, '0')
@@ -22,5 +27,27 @@ class User < ApplicationRecord
   
   def email_verification_required?
     !email_verified?
+  end
+  
+  def completed_achievements
+    user_achievements.completed.includes(:achievement)
+  end
+  
+  def in_progress_achievements
+    user_achievements.in_progress.includes(:achievement)
+  end
+  
+  def achievement_progress(achievement)
+    user_achievements.find_by(achievement: achievement)&.progress || 0
+  end
+  
+  def has_achievement?(achievement)
+    user_achievements.exists?(achievement: achievement, completed_at: ..Time.current)
+  end
+  
+  private
+  
+  def check_registration_achievements
+    AchievementService.new(self).check_achievements_for_registration_order
   end
 end
